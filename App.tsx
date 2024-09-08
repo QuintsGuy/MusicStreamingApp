@@ -1,20 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { registerRootComponent } from 'expo';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import LandingScreen from './screens/preLogin/LandingScreen';
+import LoginScreen from './screens/preLogin/LoginScreen';
+import RegistrationScreen from './screens/preLogin/RegistrationScreen';
+import HomeScreen from './screens/postLogin/HomeScreen'; // Assuming you have this screen
+import ConfirmationScreen from './screens/preLogin/ConfirmationScreen';
 
-export default function App() {
+const Stack = createStackNavigator();
+
+const App = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Landing">
+        <Stack.Screen name="Landing" component={LandingScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegistrationScreen} />
+        <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+registerRootComponent(App);
+
+export default App;
+
