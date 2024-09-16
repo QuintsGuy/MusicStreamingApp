@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -11,23 +11,36 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ConfirmationScreen = () => {
     const navigation = useNavigation<NavigationProp>();
+    const [countdown, setCountdown] = useState(5);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Redirect to HomeScreen after 5 seconds
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            navigation.navigate('Home');
-        }, 5000);
+    useLayoutEffect(() => {
+        timerRef.current = setInterval(() => {
+            setCountdown((prevCount) => {
+                if (prevCount <= 1) {
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Home' }],
+                    });
+                    return 0;
+                }
+                return prevCount - 1;
+            });
+        }, 1000);
 
-        // Cleanup timer on unmount
-        return () => clearTimeout(timer);
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
     }, [navigation]);
 
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Registration Successful!</Text>
             <Text style={styles.subHeader}>
-                You will be redirected to the home screen shortly.
+                You will be redirected to the home screen in {countdown} seconds.
             </Text>
+            <ActivityIndicator size="large" color="#0000ff" style={styles.spinner} />
         </View>
     );
 };
@@ -50,6 +63,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#666',
         textAlign: 'center',
+    },
+    spinner: {
+        marginTop: 20,
     },
 });
 

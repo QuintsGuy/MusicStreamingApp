@@ -1,4 +1,4 @@
-import { Text, View, Button, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -14,21 +14,22 @@ const LandingScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Welcome to Music Streaming App</Text>
-            <Text style={styles.subHeader}>Please log in or register to continue</Text>
-            <Button
-                title="Login"
+            <Text style={styles.header}>Music Streaming App</Text>
+            <Text style={styles.subHeader}>Your favorite tunes, anytime, anywhere</Text>
+            
+            <TouchableOpacity
+                style={styles.button}
                 onPress={() => navigation.navigate('Login')}
-                color="#1DB954"
-            />
+            >
+                <Text style={styles.buttonText}>Login</Text>
+            </TouchableOpacity>
 
-            <View style={styles.buttonSpacing}>
-                <Button
-                title="Register"
+            <TouchableOpacity
+                style={[styles.button, styles.registerButton]}
                 onPress={() => navigation.navigate('Register')}
-                color="#1DB954"
-                />
-            </View>
+            >
+                <Text style={styles.buttonText}>Register</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -39,23 +40,38 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: '#f5f5f5', // Light background
+        backgroundColor: '#121212', // Dark background
     },
     header: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#ffffff',
         marginBottom: 20,
         textAlign: 'center',
     },
     subHeader: {
         fontSize: 18,
-        color: '#666',
-        marginBottom: 30,
+        color: '#b3b3b3',
+        marginBottom: 40,
         textAlign: 'center',
     },
-    buttonSpacing: {
-        marginTop: 15,
+    button: {
+        backgroundColor: '#1DB954',
+        paddingVertical: 12,
+        paddingHorizontal: 40,
+        borderRadius: 25,
+        marginBottom: 15,
+    },
+    registerButton: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '#1DB954',
+    },
+    buttonText: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
 });
 

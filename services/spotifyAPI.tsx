@@ -1,17 +1,14 @@
-import axios from 'axios';
+import supabase from './supabase';
 
-const BASE_URL = 'https://api.spotify.com/v1';
+export async function getSpotifyCredentials() {
+    const { data, error } = await supabase
+        .from('spotify_credentials')
+        .select('client_id, client_secret')
+        .single();  // Fetches a single row (you should only store one row of credentials)
 
-export const fetchAlbums = async() => {
-    try {
-        const response = await axios.get(`${BASE_URL}/albums`, {
-            headers: {
-                Authorization: `Bearer ${process.env.SPOTIFY_API_KEY}`
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching albums:', error);
-        throw error;
+    if (error) {
+        throw new Error('Error fetching Spotify credentials');
     }
-};
+
+    return data;  // Return the client ID and client secret
+}

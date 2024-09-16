@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { supabase } from '../../services/supabase'; // Assume you have supabase client setup
+import supabase from '../../services/supabase'; // Assume you have supabase client setup
 import * as EmailValidator from 'email-validator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
