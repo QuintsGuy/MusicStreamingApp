@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import LandingScreen from './screens/preLogin/LandingScreen';
 import LoginScreen from './screens/preLogin/LoginScreen';
-import RegistrationScreen from './screens/preLogin/RegistrationScreen';// Assuming you have this screen
+import RegistrationScreen from './screens/preLogin/RegistrationScreen';
 import ConfirmationScreen from './screens/preLogin/ConfirmationScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
@@ -12,17 +12,20 @@ import HomeScreen from './screens/postLogin/HomeScreen';
 import SearchScreen from './screens/postLogin/SearchScreen';
 import LibraryScreen from './screens/postLogin/LibraryScreen';
 import SettingsScreen from './screens/postLogin/SettingsScreen';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { AppRegistry, StatusBar, StyleSheet, View } from 'react-native';
 import HistoryScreen from './screens/postLogin/HistoryScreen';
 import supabase from './services/supabase';
 import ProfileScreen from './screens/postLogin/ProfileScreen';
 import { UserProvider } from './components/context/UserContext';
+import PlaylistScreen from './screens/postLogin/PlaylistScreen';
+import { TrackPlayerProvider } from './components/context/TrackPlayerContext';
+import TrackPlayerScreen from './screens/postLogin/TrackPlayerScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
-const DarkTheme = { 
+const DarkTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
@@ -30,8 +33,8 @@ const DarkTheme = {
     text: 'white',
     card: '#1E1E1E',
     border: '#272727',
-  }
-}
+  },
+};
 
 const PreLoginStackScreen = ({ setIsLoggedIn }: { setIsLoggedIn: (isLoggedIn: boolean) => void }) => (
   <Stack.Navigator>
@@ -92,9 +95,7 @@ const CustomDrawerContent = (props: any) => {
             await supabase.auth.signOut();
             props.setIsLoggedIn(false);
           }}
-          icon={({ color, size }) => (
-            <Icon name="log-out-outline" size={size} color={color} />
-          )}
+          icon={({ color, size }) => <Icon name="log-out-outline" size={size} color={color} />}
         />
       </View>
     </View>
@@ -130,7 +131,7 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
-    <>
+    <TrackPlayerProvider>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
       <NavigationContainer theme={DarkTheme}>
         <UserProvider>
@@ -146,24 +147,30 @@ export default function App() {
             }}
           >
             {isLoggedIn ? (
-              <Stack.Screen 
-                name="Main" 
-                options={{ headerShown: false }}
-              >
-                {(props) => <MainNavigator {...props} setIsLoggedIn={setIsLoggedIn} />}
-              </Stack.Screen>
+              <>
+                <Stack.Screen name="Main" options={{ headerShown: false }}>
+                  {(props) => <MainNavigator {...props} setIsLoggedIn={setIsLoggedIn} />}
+                </Stack.Screen>
+                <Stack.Screen
+                  name="PlaylistDetails"
+                  component={PlaylistScreen as any}
+                  options={{ title: 'Playlist Details' }}
+                />
+                <Stack.Screen
+                  name="TrackPlayer"
+                  component={TrackPlayerScreen as any}
+                  options={{ title: 'Track Player' }}
+                />
+              </>
             ) : (
-              <Stack.Screen 
-                name="PreLogin" 
-                options={{ headerShown: false }}
-              >
+              <Stack.Screen name="PreLogin" options={{ headerShown: false }}>
                 {(props) => <PreLoginStackScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
               </Stack.Screen>
             )}
           </Stack.Navigator>
         </UserProvider>
       </NavigationContainer>
-    </>
+    </TrackPlayerProvider>
   );
 }
 
@@ -209,3 +216,4 @@ const styles = StyleSheet.create({
   },
 });
 
+AppRegistry.registerComponent('appName', () => App);
