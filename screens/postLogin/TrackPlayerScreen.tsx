@@ -1,18 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTrackPlayer } from '../../context/TrackPlayerContext';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { Audio } from 'expo-av';
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import Slider from '@react-native-community/slider';
-
-type Track = {
-    id: string;
-    uri: string;
-    title: string;
-    artist: string;
-    album: string;
-};
+import { Track } from '../../types/spotify';
 
 type RootStackParamList = {
     TrackPlayerScreen: { track: Track };  // Specify the track is part of the params
@@ -21,7 +13,6 @@ type RootStackParamList = {
 type TrackPlayerScreenRouteProp = RouteProp<RootStackParamList, 'TrackPlayerScreen'>;
 
 const TrackPlayerScreen = () => {
-    const navigation = useNavigation();
     const trackPlayerContext = useTrackPlayer();
     const route = useRoute<TrackPlayerScreenRouteProp>();
     const { track } = route.params;
@@ -32,6 +23,7 @@ const TrackPlayerScreen = () => {
 
     const { 
         currentTrack, 
+        setCurrentTrack,
         isPlaying, 
         play, 
         pause, 
@@ -41,16 +33,17 @@ const TrackPlayerScreen = () => {
         seek, 
         currentPosition, 
         trackDuration,
-        isMinimized,
         toggleMinimize,
+        isMinimized
     } = trackPlayerContext;
 
     const [seeking, setSeeking] = useState(false);
     const [sliderValue, setSliderValue] = useState(0);
 
     useEffect(() => {
-        if (track) {
-            play(track);  // Update current track and start playing
+        if (track && (!currentTrack || currentTrack.id !== track.id)) {
+            play(track);
+            setCurrentTrack(track);
         }
     }, [track]);
 
@@ -92,6 +85,16 @@ const TrackPlayerScreen = () => {
     const handleSlidingStart = () => {
         setSeeking(true);
     }
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (!isMinimized) {
+                    toggleMinimize(true);
+                }
+            };
+        }, [toggleMinimize, isMinimized])
+    );
 
     return (
         <View style={styles.container}>

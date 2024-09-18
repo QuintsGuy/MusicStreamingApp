@@ -4,14 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type RootStackParamList = {
-    Home: undefined;
+    Landing: undefined;
 }
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ConfirmationScreen = () => {
     const navigation = useNavigation<NavigationProp>();
-    const [countdown, setCountdown] = useState(5);
+    const [countdown, setCountdown] = useState(3);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     useLayoutEffect(() => {
@@ -21,7 +21,7 @@ const ConfirmationScreen = () => {
                     if (timerRef.current) clearInterval(timerRef.current);
                     navigation.reset({
                         index: 0,
-                        routes: [{ name: 'Home' }],
+                        routes: [{ name: 'Landing' }],
                     });
                     return 0;
                 }

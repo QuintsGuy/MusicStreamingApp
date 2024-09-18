@@ -17,7 +17,7 @@ type MiniPlayerProps = {
 };
 
 const MiniPlayer: React.FC<MiniPlayerProps> = ({ navigation }) => {
-    const { currentTrack, isPlaying, play, pause, resume, isMinimized, toggleMinimize } = useTrackPlayer() ?? {};
+    const { currentTrack, currentPosition, isPlaying, play, pause, resume, isMinimized, toggleMinimize } = useTrackPlayer() ?? {};
     const navigationProp = navigation ?? useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
     if (!currentTrack || !isMinimized) return null;
@@ -27,18 +27,30 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({ navigation }) => {
         navigationProp.navigate('TrackPlayer', { track: currentTrack });
     };
 
+    const handlePlayPause = () => {
+        if (isPlaying) {
+            pause?.();
+        } else {
+            if (currentPosition && currentPosition > 0) {
+                resume?.();
+            } else {
+                play?.(currentTrack);
+            }
+        }
+    };
+
     return (
         <TouchableOpacity style={styles.container} onPress={handleExpand}>
-        <Image source={{ uri: currentTrack.album }} style={styles.albumArt} />
-        <View style={styles.info}>
-            <Text style={styles.trackName}>{currentTrack.title}</Text>
-            <Text style={styles.artistName}>{currentTrack.artist}</Text>
-        </View>
-        <View style={styles.controls}>
-            <TouchableOpacity onPress={isPlaying ? pause : () => play?.(currentTrack)}>
-                <Icon name={isPlaying ? 'pause' : 'play'} size={30} color="#fff" />
-            </TouchableOpacity>
-        </View>
+            <Image source={{ uri: currentTrack.album }} style={styles.albumArt} />
+            <View style={styles.info}>
+                <Text style={styles.trackName}>{currentTrack.title}</Text>
+                <Text style={styles.artistName}>{currentTrack.artist}</Text>
+            </View>
+            <View style={styles.controls}>
+                <TouchableOpacity onPress={handlePlayPause}>
+                    <Icon name={isPlaying ? 'pause' : 'play'} size={30} color="#fff" />
+                </TouchableOpacity>
+            </View>
         </TouchableOpacity>
     );
 };

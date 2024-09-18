@@ -5,6 +5,7 @@ import { Track } from '../types/spotify';
 
 type TrackPlayerContextType = {
     currentTrack: Track | null;
+    setCurrentTrack: (track: Track | null) => void;
     isPlaying: boolean;
     play: (track: Track) => Promise<void>;
     pause: () => Promise<void>;
@@ -120,6 +121,7 @@ export const TrackPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         <TrackPlayerContext.Provider
             value={{
                 currentTrack,
+                setCurrentTrack,
                 isPlaying,
                 play: playTrack,
                 pause: pauseTrack,

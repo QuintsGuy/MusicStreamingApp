@@ -53,31 +53,33 @@ const RegistrationScreen = () => {
 
   // Submit form to Supabase
   const handleRegister = async () => {
-      if (!validateForm()) return;
-
-      setLoading(true);
-
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password, 
-        phone: phone,
-        options: {
-          data: {
-            display_name: username,
-          },
+    if (!validateForm()) return;
+  
+    setLoading(true);
+  
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password, 
+      phone: phone,
+      options: {
+        data: {
+          display_name: username,
         },
-      });
-
-      setLoading(false);
-
-      if (error) {
-        if (error.message.includes('email rate limit exceeded')) {
-          Alert.alert('Too many attempts.', 'Please try again later or use a different email.');
+      },
+    });
+  
+    setLoading(false);
+  
+    if (error) {
+      if (error.message.includes('email rate limit exceeded')) {
+        Alert.alert('Too many attempts.', 'Please try again later or use a different email.');
       } else {
-      // Navigate to confirmation screen
-        navigation.navigate('Confirmation');
+        Alert.alert('Registration error', error.message);
       }
-    };
+    } else {
+      // Navigate to confirmation screen
+      navigation.navigate('Confirmation');
+    }
   };
 
   return (
