@@ -8,7 +8,7 @@ import { Track } from '../../types/spotify';
 
 type RootStackParamList = {
     TrackPlayer: { track: any };
-    QRScannerScreen: { onScan: (qrCode: string) => void };
+    QRScanner: { onScan: (qrCode: string) => void };
     PlaylistDetails: { id: string; title: string; imageUrl: string; subtitle: string; type: string };
 };
 
@@ -124,7 +124,7 @@ const SearchScreen = ({ navigation }: SearchScreenProps) => {
             {/* Header with QR icon */}
             <View style={styles.header}>
                 <Text style={styles.title}>Search</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('QRScannerScreen', { onScan: handleQRScan })}>
+                <TouchableOpacity onPress={() => navigation.navigate('QRScanner', { onScan: handleQRScan })}>
                     <Icon name="camera-outline" size={30} color="#fff" />
                 </TouchableOpacity>
             </View>

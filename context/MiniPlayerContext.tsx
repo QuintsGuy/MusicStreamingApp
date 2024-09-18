@@ -9,6 +9,7 @@ type MiniPlayerContextType = {
     play: (track: Track) => void;
     pause: () => void;
     resume: () => void;
+    stop: () => void;
     toggleMinimize: () => void;
     showMiniPlayer: () => void;
     hideMiniPlayer: () => void;
@@ -52,6 +53,13 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
     };
 
+    const stop = async () => {
+        if (sound) {
+            await sound.stopAsync();
+            setIsPlaying(false);
+        }
+    };
+
     const toggleMinimize = () => {
         setIsMinimized(!isMinimized);
     };
@@ -66,7 +74,7 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     return (
         <MiniPlayerContext.Provider
-            value={{ currentTrack, isPlaying, isMinimized, play, pause, resume, toggleMinimize, showMiniPlayer, hideMiniPlayer }}
+            value={{ currentTrack, isPlaying, isMinimized, play, pause, resume, stop, toggleMinimize, showMiniPlayer, hideMiniPlayer }}
         >
             {children}
         </MiniPlayerContext.Provider>

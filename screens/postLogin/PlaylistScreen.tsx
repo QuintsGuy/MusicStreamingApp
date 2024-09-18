@@ -46,9 +46,11 @@ const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ route, navigation }) =>
                     break;
                 case 'album':
                     data = await getAlbumTracks(id);
+                    console.log(data);
                     break;
                 case 'artist':
                     data = await getArtistTracks(id);
+                    console.log(data);
                     break;
                 case 'show':
                     data = await getShowEpisodes(id);
@@ -57,7 +59,6 @@ const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ route, navigation }) =>
                     console.error('Unknown type:', type);
                     return null;
             }
-            console.log('Fetched data:', data);
             setTracks(data);
         } catch (error) {
             console.error('Error fetching tracks:', error);
@@ -68,29 +69,67 @@ const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ route, navigation }) =>
 
     const renderItem = ({ item }: { item: any }) => {
         if (!item) return null;
-        const isEpisode = type === 'show' && item.audio_preview_url;
-    
+
+        let trackData;
+        switch (type) {
+            case 'playlist':
+                trackData = {
+                    id: item.track.id,
+                    uri: item.track.preview_url,
+                    title: item.track.name,
+                    artist: item.track.artists[0]?.name,
+                    album: item.track.album?.images[0]?.url || imageUrl,
+                };
+                break;
+            case 'album':
+                trackData = {
+                    id: item.id,
+                    uri: item.preview_url,
+                    title: item.name,
+                    artist: item.artists[0]?.name,
+                    album: imageUrl,
+                };
+                break;
+            case 'artist':
+                trackData = {
+                    id: item.id,
+                    uri: item.preview_url,
+                    title: item.name,
+                    artist: item.artists[0]?.name,
+                    album: item.album?.images[0]?.url,
+                };
+                break;
+            case 'show':
+                trackData = {
+                    id: item.id,
+                    uri: item.audio_preview_url,
+                    title: item.name,
+                    artist: item.show?.publisher,
+                    album: item.images[0]?.url,
+                };
+                break;
+            default:
+                console.error('Unknown type:', type);
+                return null;
+        }
+
         return (
-            <TouchableOpacity onPress={() => { 
-                const track = isEpisode
-                    ? { id: item.id, uri: item.audio_preview_url, title: item.name, artist: item.show?.publisher, album: imageUrl }
-                    : { id: item.track?.id, uri: item.track?.preview_url, title: item.track?.name, artist: item.track?.artists[0]?.name, album: item.track?.album.images[0]?.url };
-    
-                if (!track.uri) {
+            <TouchableOpacity onPress={() => {
+                if (!trackData.uri) {
                     console.error('No audio available. Select another track.');
                 } else {
-                    navigation.navigate('TrackPlayer', { track });
+                    navigation.navigate('TrackPlayer', { track: trackData });
                 }
             }}>
                 <View style={styles.trackContainer}>
-                    {item.track?.album?.images?.[0]?.url || item.images?.[0]?.url ? (
-                        <Image source={{ uri: item.track?.album?.images?.[0]?.url || item.images?.[0]?.url }} style={styles.albumImage} />
+                    {trackData.album ? (
+                        <Image source={{ uri: trackData.album }} style={styles.albumImage} />
                     ) : (
                         <View style={styles.placeholderAlbumImage} />
                     )}
                     <View style={styles.trackInfo}>
-                        <Text style={styles.trackName}>{item.track?.name || item.name}</Text>
-                        <Text style={styles.artistName}>{item.track?.artists?.[0]?.name || item.show?.publisher}</Text>
+                        <Text style={styles.trackName}>{trackData.title}</Text>
+                        <Text style={styles.artistName}>{trackData.artist}</Text>
                     </View>
                 </View>
             </TouchableOpacity>

@@ -17,7 +17,7 @@ type MiniPlayerProps = {
 };
 
 const MiniPlayer: React.FC<MiniPlayerProps> = ({ navigation }) => {
-    const { currentTrack, currentPosition, isPlaying, play, pause, resume, isMinimized, toggleMinimize } = useTrackPlayer() ?? {};
+    const { currentTrack, currentPosition, isPlaying, play, pause, stop, resume, isMinimized, toggleMinimize } = useTrackPlayer() ?? {};
     const navigationProp = navigation ?? useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
     if (!currentTrack || !isMinimized) return null;
@@ -39,6 +39,11 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({ navigation }) => {
         }
     };
 
+    const handleClose = () => {
+        stop?.();
+        toggleMinimize?.(false);
+    }
+
     return (
         <TouchableOpacity style={styles.container} onPress={handleExpand}>
             <Image source={{ uri: currentTrack.album }} style={styles.albumArt} />
@@ -49,6 +54,9 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({ navigation }) => {
             <View style={styles.controls}>
                 <TouchableOpacity onPress={handlePlayPause}>
                     <Icon name={isPlaying ? 'pause' : 'play'} size={30} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleClose}>
+                    <Icon name="close" size={30} color="#fff" />
                 </TouchableOpacity>
             </View>
         </TouchableOpacity>
