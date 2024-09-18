@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import supabase from '../../services/supabase';
 import * as EmailValidator from 'email-validator';
-import { useUser } from '../../components/context/UserContext';
+import { useUser } from '../../context/UserContext';
 
 interface LoginScreenProps {
     setIsLoggedIn: (value: boolean) => void;

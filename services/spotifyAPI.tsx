@@ -1,5 +1,6 @@
 import supabase from './supabase';
 import { Buffer } from 'buffer';
+import { Track } from '../types/spotify';
 
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/api/token';
 const SPOTIFY_API_URL = 'https://api.spotify.com/v1/';
@@ -90,6 +91,54 @@ export async function getFeaturedPodcasts() {
     return data.albums.items; // Return the podcast categories
 }
 
+export async function getAlbumTracks(albumId: string) {
+    const accessToken = await getSpotifyToken();
+    const response = await fetch(`${SPOTIFY_API_URL}albums/${albumId}/tracks`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch album tracks');
+    }
+
+    const data = await response.json();
+    return data.items; // Return the array of tracks from the album
+}
+
+export async function getArtistTracks(artistId: string) {
+    const accessToken = await getSpotifyToken();
+    const response = await fetch(`${SPOTIFY_API_URL}artists/${artistId}/top-tracks?market=US`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch artist top tracks');
+    }
+
+    const data = await response.json();
+    return data.tracks; // Return the array of the artist's top tracks
+}
+
+export async function getShowEpisodes(showId: string) {
+    const accessToken = await getSpotifyToken();
+    const response = await fetch(`${SPOTIFY_API_URL}shows/${showId}/episodes`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch show episodes');
+    }
+
+    const data = await response.json();
+    return data.items;
+}
+
 export async function getPlaylistTracks(playlistId: string) {
     const accessToken = await getSpotifyToken();
     const response = await fetch(`${SPOTIFY_API_URL}playlists/${playlistId}/tracks`, {
@@ -104,4 +153,24 @@ export async function getPlaylistTracks(playlistId: string) {
 
     const data = await response.json();
     return data.items; // Return the tracks in the playlist
-}
+};
+
+export async function fetchSpotifySearch(query: string) {
+    const accessToken = await getSpotifyToken();
+    const response = await fetch(`${SPOTIFY_API_URL}search?q=${query}&type=track,artist,album,playlist,show,episode&market=US`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    const data = await response.json();
+    
+    const tracks = data.tracks.items.map((item: any) => ({ ...item, type: 'track' }));
+    const albums = data.albums.items.map((item: any) => ({ ...item, type: 'album' }));
+    const artists = data.artists.items.map((item: any) => ({ ...item, type: 'artist' }));
+    const playlists = data.playlists.items.map((item: any) => ({ ...item, type: 'playlist' }));
+    const shows = data.shows.items.map((item: any) => ({ ...item, type: 'show' }));
+    const episodes = data.episodes.items.map((item: any) => ({ ...item, type: 'episode' }));
+
+    return [...tracks, ...albums, ...artists, ...playlists, ...shows, ...episodes]; 
+};

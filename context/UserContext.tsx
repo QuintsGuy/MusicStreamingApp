@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import supabase from '../../services/supabase'; // Adjust the path to match your project
+import supabase from '../services/supabase'; // Adjust the path to match your project
 
 interface User {
     id: string;

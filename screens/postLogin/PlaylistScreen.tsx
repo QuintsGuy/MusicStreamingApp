@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { getPlaylistTracks } from '../../services/spotifyAPI';
+import { getAlbumTracks, getArtistTracks, getPlaylistTracks, getShowEpisodes } from '../../services/spotifyAPI';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTrackPlayer } from '../../components/context/TrackPlayerContext';
+import { useTrackPlayer } from '../../context/TrackPlayerContext';
 
 export type RootStackParamList = {
     Main: undefined;
-    PlaylistDetails: { item: any; type: string };
+    PlaylistDetails: { 
+        id: string; 
+        type: string; 
+        title: string; 
+        imageUrl: string; 
+        subtitle: string 
+    };
     TrackPlayer: { 
         track: { 
             id: string; 
@@ -19,11 +25,11 @@ export type RootStackParamList = {
     PreLogin: undefined;
 };
 
-type PlaylistScreenProps = NativeStackScreenProps<RootStackParamList, 'PlaylistDetails', 'TrackPlayer'>;
+type PlaylistScreenProps = NativeStackScreenProps<RootStackParamList, 'PlaylistDetails'>;
 
 const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ route, navigation }) => {
-    const { item } = route.params;
-    const [tracks, setTracks] = useState([]);
+    const { id, type, title, imageUrl, subtitle } = route.params;
+    const [tracks, setTracks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { play } = useTrackPlayer() ?? {};
 
@@ -32,55 +38,83 @@ const PlaylistScreen: React.FC<PlaylistScreenProps> = ({ route, navigation }) =>
     }, []);
 
     const fetchTracks = async () => {
-        const data = await getPlaylistTracks(item.id);
-        setTracks(data);
-        setLoading(false);
+        let data;
+        try {
+            switch (type) {
+                case 'playlist':
+                    data = await getPlaylistTracks(id);
+                    break;
+                case 'album':
+                    data = await getAlbumTracks(id);
+                    break;
+                case 'artist':
+                    data = await getArtistTracks(id);
+                    break;
+                case 'show':
+                    data = await getShowEpisodes(id);
+                    break;
+                default:
+                    console.error('Unknown type:', type);
+                    return null;
+            }
+            console.log('Fetched data:', data);
+            setTracks(data);
+        } catch (error) {
+            console.error('Error fetching tracks:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const renderItem = ({ item }: { item: any }) => (
-        <TouchableOpacity onPress={() => { 
-            if (!item.track.preview_url) {
-                console.error('No audio available. Select another track.');
-            } else {
-                navigation.navigate('TrackPlayer', {
-                    track: {
-                        id: item.track.id,
-                        uri: item.track.preview_url, 
-                        title: item.track.name,
-                        artist: item.track.artists[0].name,
-                        album: item.track.album.images[0]?.url
-                    }
-                });
-            }
-        }}>
-            <View style={styles.trackContainer}>
-                {item.track.album?.images?.[0]?.url ? (
-                    <Image source={{ uri: item.track.album.images[0].url }} style={styles.albumImage} />
-                ) : (
-                    <View style={styles.placeholderAlbumImage} />
-                )}
-                <View style={styles.trackInfo}>
-                    <Text style={styles.trackName}>{item.track.name}</Text>
-                    <Text style={styles.artistName}>{item.track.artists[0].name}</Text>
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
+    const renderItem = ({ item }: { item: any }) => {
+        if (!item) return null;
+        const isEpisode = type === 'show' && item.audio_preview_url;
     
+        return (
+            <TouchableOpacity onPress={() => { 
+                const track = isEpisode
+                    ? { id: item.id, uri: item.audio_preview_url, title: item.name, artist: item.show?.publisher, album: imageUrl }
+                    : { id: item.track?.id, uri: item.track?.preview_url, title: item.track?.name, artist: item.track?.artists[0]?.name, album: item.track?.album.images[0]?.url };
+    
+                if (!track.uri) {
+                    console.error('No audio available. Select another track.');
+                } else {
+                    navigation.navigate('TrackPlayer', { track });
+                }
+            }}>
+                <View style={styles.trackContainer}>
+                    {item.track?.album?.images?.[0]?.url || item.images?.[0]?.url ? (
+                        <Image source={{ uri: item.track?.album?.images?.[0]?.url || item.images?.[0]?.url }} style={styles.albumImage} />
+                    ) : (
+                        <View style={styles.placeholderAlbumImage} />
+                    )}
+                    <View style={styles.trackInfo}>
+                        <Text style={styles.trackName}>{item.track?.name || item.name}</Text>
+                        <Text style={styles.artistName}>{item.track?.artists?.[0]?.name || item.show?.publisher}</Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
     if (loading) {
         return <ActivityIndicator size="large" color="#fff" />;
     }
     
     return (
         <View style={styles.container}>
-            <Image source={{ uri: item.images[0]?.url }} style={styles.playlistImage} />
-            <Text style={styles.playlistName}>{item.name}</Text>
-            <Text style={styles.playlistOwner}>By {item.owner.display_name}</Text>
-        
+            {imageUrl ? (
+                <Image source={{ uri: imageUrl }} style={styles.playlistImage} />
+            ) : (
+                <View style={styles.placeholderAlbumImage} />
+            )}
+            <Text style={styles.playlistName}>{title}</Text>
+            <Text style={styles.playlistOwner}>{subtitle}</Text>
+
             <FlatList
                 data={tracks}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.track.id}
+                keyExtractor={(item) => item?.track?.id || Math.random().toString()}
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
         </View>

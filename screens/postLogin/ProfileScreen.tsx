@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, Alert, Keyb
 import supabase from '../../services/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useUser } from '../../components/context/UserContext';
+import { useUser } from '../../context/UserContext';
 
 type Profile = {
     avatar: string | null;

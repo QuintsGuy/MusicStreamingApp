@@ -1,14 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Audio } from 'expo-av';
 import { Alert } from 'react-native';
-
-type Track = {
-    id: string;
-    uri: string;
-    title: string;
-    artist: string;
-    album: string;
-}
+import { Track } from '../types/spotify';
 
 type TrackPlayerContextType = {
     currentTrack: Track | null;
@@ -22,6 +15,8 @@ type TrackPlayerContextType = {
     seek: (position: number) => Promise<void>;
     currentPosition: number;
     trackDuration: number;
+    toggleMinimize: (value: boolean) => void;
+    isMinimized: boolean;
 }
 
 const TrackPlayerContext = createContext<TrackPlayerContextType | undefined>(undefined);
@@ -30,6 +25,7 @@ export const useTrackPlayer = () => useContext(TrackPlayerContext);
 export const TrackPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isMinimized, setIsMinimized] = useState(false);
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [currentPosition, setCurrentPosition] = useState(0);
     const trackDuration = 30;
@@ -63,12 +59,13 @@ export const TrackPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
             setSound(newSound);
             setCurrentTrack(track);
             setIsPlaying(true);
+            setIsMinimized(true);
 
             newSound.setOnPlaybackStatusUpdate((status) => {
                 if (status.isLoaded) {
-                    setCurrentPosition(status.positionMillis / 1000);  // Update in seconds
+                    setCurrentPosition(status.positionMillis / 1000);
                     if (status.didJustFinish) {
-                        setIsPlaying(false);  // Pause when the track finishes
+                        setIsPlaying(false);
                     }
                 }
             });
@@ -98,6 +95,7 @@ export const TrackPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (sound) {
             await sound.stopAsync();
             setIsPlaying(false);
+            setIsMinimized(false);
         }
     };
 
@@ -106,6 +104,10 @@ export const TrackPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
             await sound.setPositionAsync(position * 1000);
             setCurrentPosition(position);
         }
+    }
+
+    const toggleMinimize = () => {
+        setIsMinimized((prev) => !prev);
     }
 
     useEffect(() => {
@@ -128,6 +130,8 @@ export const TrackPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 seek: seekTrack,
                 currentPosition,
                 trackDuration,
+                isMinimized,
+                toggleMinimize,
             }}
         >
             {children}

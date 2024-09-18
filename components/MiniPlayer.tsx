@@ -1,35 +1,44 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTrackPlayer } from './context/TrackPlayerContext';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useTrackPlayer } from '../context/TrackPlayerContext';
+import { useNavigation } from '@react-navigation/native';
+import { Track } from '../types/spotify';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NavigationProp } from '@react-navigation/native';
 
-const MiniPlayer: React.FC<{ onExpand: () => void }> = ({ onExpand }) => {
-    const trackPlayerContext = useTrackPlayer();
-    
-    if (!trackPlayerContext) {
-        return <Text>No track player context</Text>;
-    }
-    
-    const { currentTrack, isPlaying, play, pause } = trackPlayerContext;
+type RootStackParamList = {
+    TrackPlayer: { track: Track };
+    navigation: NativeStackNavigationProp<RootStackParamList>;
+};
+
+type MiniPlayerProps = {
+    navigation?: NavigationProp<RootStackParamList>;
+};
+
+const MiniPlayer: React.FC<MiniPlayerProps> = ({ navigation }) => {
+    const { currentTrack, isPlaying, play, pause, resume, isMinimized, toggleMinimize } = useTrackPlayer() ?? {};
+    const navigationProp = navigation ?? useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+    if (!currentTrack || !isMinimized) return null;
+
+    const handleExpand = () => {
+        toggleMinimize?.(false);
+        navigationProp.navigate('TrackPlayer', { track: currentTrack });
+    };
 
     return (
-        <TouchableOpacity style={styles.container} onPress={onExpand}>
-            <Image source={{ uri: currentTrack?.album }} style={styles.albumArt} />
-            <View style={styles.info}>
-                <Text style={styles.trackName}>{currentTrack?.title}</Text>
-                <Text style={styles.artistName}>{currentTrack?.artist}</Text>
-            </View>
-            <View style={styles.controls}>
-                {isPlaying ? (
-                    <TouchableOpacity onPress={pause}>
-                        <Icon name="pause" size={30} color="#fff" />
-                    </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity onPress={() => play(currentTrack as any)}>
-                        <Icon name="play" size={30} color="#fff" />
-                    </TouchableOpacity>
-                )}
-            </View>
+        <TouchableOpacity style={styles.container} onPress={handleExpand}>
+        <Image source={{ uri: currentTrack.album }} style={styles.albumArt} />
+        <View style={styles.info}>
+            <Text style={styles.trackName}>{currentTrack.title}</Text>
+            <Text style={styles.artistName}>{currentTrack.artist}</Text>
+        </View>
+        <View style={styles.controls}>
+            <TouchableOpacity onPress={isPlaying ? pause : () => play?.(currentTrack)}>
+                <Icon name={isPlaying ? 'pause' : 'play'} size={30} color="#fff" />
+            </TouchableOpacity>
+        </View>
         </TouchableOpacity>
     );
 };
@@ -38,13 +47,17 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#111',  // Darker background color
         padding: 10,
         position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 60,
+        bottom: 60, // Ensure MiniPlayer sits above the bottom tab bar
+        left: 15,  // Add margin around the container
+        right: 15, // Add margin around the container
+        height: 70,
+        borderRadius: 10,  // Rounded corners for the container
+        zIndex: 1000,
+        borderWidth: 2,  // Transparent border to simulate a shadow effect on Android
+        borderColor: 'rgba(29, 185, 84, 0.5)',
     },
     albumArt: {
         width: 50,
@@ -53,19 +66,21 @@ const styles = StyleSheet.create({
     },
     info: {
         flex: 1,
-        marginLeft: 10,
+        marginLeft: 15,
     },
     trackName: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#fff',
     },
     artistName: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#888',
     },
     controls: {
-        marginRight: 10,
-    },
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: 80,
+    }
 });
 
 export default MiniPlayer;

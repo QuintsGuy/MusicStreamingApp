@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { DefaultTheme, NavigationContainer, useNavigationState } from '@react-navigation/native';
 import LandingScreen from './screens/preLogin/LandingScreen';
 import LoginScreen from './screens/preLogin/LoginScreen';
 import RegistrationScreen from './screens/preLogin/RegistrationScreen';
@@ -16,10 +16,13 @@ import { AppRegistry, StatusBar, StyleSheet, View } from 'react-native';
 import HistoryScreen from './screens/postLogin/HistoryScreen';
 import supabase from './services/supabase';
 import ProfileScreen from './screens/postLogin/ProfileScreen';
-import { UserProvider } from './components/context/UserContext';
+import { UserProvider } from './context/UserContext';
 import PlaylistScreen from './screens/postLogin/PlaylistScreen';
-import { TrackPlayerProvider } from './components/context/TrackPlayerContext';
+import { TrackPlayerProvider } from './context/TrackPlayerContext';
 import TrackPlayerScreen from './screens/postLogin/TrackPlayerScreen';
+import QRScannerScreen from './screens/postLogin/QrScanner';
+import MiniPlayer from './components/MiniPlayer';
+import { MiniPlayerProvider } from './context/MiniPlayerContext';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -76,8 +79,8 @@ const TabNavigator = () => (
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Search" component={SearchScreen} />
-    <Tab.Screen name="Library" component={LibraryScreen} />
+    <Tab.Screen name="Search" component={SearchScreen} options={{ headerShown: false }} />
+    <Tab.Screen name="Library" component={LibraryScreen} options={{ headerShown: false }} />
   </Tab.Navigator>
 );
 
@@ -115,6 +118,7 @@ const MainNavigator = ({ setIsLoggedIn }: { setIsLoggedIn: (isLoggedIn: boolean)
       },
       drawerStyle: {
         backgroundColor: '#121212',
+        zIndex: 1000,
       },
       drawerActiveTintColor: 'white',
       drawerInactiveTintColor: '#888',
@@ -131,46 +135,46 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
-    <TrackPlayerProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#121212" />
-      <NavigationContainer theme={DarkTheme}>
-        <UserProvider>
-          <Stack.Navigator
-            screenOptions={{
-              headerStyle: {
-                backgroundColor: '#1E1E1E',
-              },
-              headerTintColor: 'white',
-              headerTitleStyle: {
-                fontWeight: 'bold',
-              },
-            }}
-          >
-            {isLoggedIn ? (
-              <>
-                <Stack.Screen name="Main" options={{ headerShown: false }}>
-                  {(props) => <MainNavigator {...props} setIsLoggedIn={setIsLoggedIn} />}
+    <MiniPlayerProvider>
+      <TrackPlayerProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#121212" />
+        <NavigationContainer theme={DarkTheme}>
+          <UserProvider>
+            <Stack.Navigator
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: '#1E1E1E',
+                },
+                headerTintColor: 'white',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
+              }}
+            >
+              {isLoggedIn ? (
+                <>
+                  <Stack.Screen name="Main" options={{ headerShown: false }}>
+                    {(props) => (
+                      <>
+                        <MainNavigator {...props} setIsLoggedIn={setIsLoggedIn} />
+                        <MiniPlayer />
+                      </>
+                    )}
+                  </Stack.Screen>
+                  <Stack.Screen name="PlaylistDetails" component={PlaylistScreen as any} options={{ title: 'Playlist Details' }} />
+                  <Stack.Screen name="TrackPlayer" component={TrackPlayerScreen as any} options={{ title: 'Track Player' }} />
+                  <Stack.Screen name="QRScanner" component={QRScannerScreen as any} options={{ title: 'QR Scanner' }} />
+                </>
+              ) : (
+                <Stack.Screen name="PreLogin" options={{ headerShown: false }}>
+                  {(props) => <PreLoginStackScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
                 </Stack.Screen>
-                <Stack.Screen
-                  name="PlaylistDetails"
-                  component={PlaylistScreen as any}
-                  options={{ title: 'Playlist Details' }}
-                />
-                <Stack.Screen
-                  name="TrackPlayer"
-                  component={TrackPlayerScreen as any}
-                  options={{ title: 'Track Player' }}
-                />
-              </>
-            ) : (
-              <Stack.Screen name="PreLogin" options={{ headerShown: false }}>
-                {(props) => <PreLoginStackScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
-              </Stack.Screen>
-            )}
-          </Stack.Navigator>
-        </UserProvider>
-      </NavigationContainer>
-    </TrackPlayerProvider>
+              )}
+            </Stack.Navigator>
+          </UserProvider>
+        </NavigationContainer>
+      </TrackPlayerProvider>
+    </MiniPlayerProvider>
   );
 }
 

@@ -1,12 +1,12 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
-import { useUser } from '../../components/context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { getFeaturedPlaylists, getFeaturedPodcasts, getNewReleases } from '../../services/spotifyAPI';
 
 type RootStackParamList = {
   Home: undefined;
-  PlaylistDetails: { item: any; type: string };
+  PlaylistDetails: { id: string; title: string; imageUrl: string; subtitle: string; type: string };
 };
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -25,7 +25,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch playlists, hot artists, and podcasts from Spotify API
     fetchContent();
   }, []);
 
@@ -34,10 +33,10 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
       setLoading(true);
 
       const playlistData = await getFeaturedPlaylists();
-      setPlaylists(playlistData || []);  // Ensure playlistData is valid
+      setPlaylists(playlistData || []);
 
       const newReleasesData = await getNewReleases();
-      setNewReleases(newReleasesData || []);   // Ensure artistData is valid
+      setNewReleases(newReleasesData || []);
 
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
@@ -47,7 +46,13 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
   };
 
   const renderItem = ({ item, type }: { item: SpotifyItem; type: string }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('PlaylistDetails', { item, type })}>
+    <TouchableOpacity onPress={() => navigation.navigate('PlaylistDetails', {
+        id: item.id, 
+        title: item.name, 
+        imageUrl: item.images[0]?.url || '', 
+        subtitle: type === 'playlist' ? 'Playlist' : 'Album', 
+        type
+      })}>
       <View style={styles.itemContainer}>
         {item.images?.[0]?.url ? (
           <Image source={{ uri: item.images[0].url }} style={styles.itemImage} />
@@ -66,7 +71,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, {user?.display_name}!</Text>
-
       <Text style={styles.title}>Featured Playlists</Text>
       <FlatList
         horizontal

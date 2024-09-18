@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTrackPlayer } from '../../components/context/TrackPlayerContext';
+import { useTrackPlayer } from '../../context/TrackPlayerContext';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Audio } from 'expo-av';
 import Slider from '@react-native-community/slider';
 
@@ -21,7 +21,10 @@ type RootStackParamList = {
 type TrackPlayerScreenRouteProp = RouteProp<RootStackParamList, 'TrackPlayerScreen'>;
 
 const TrackPlayerScreen = () => {
+    const navigation = useNavigation();
     const trackPlayerContext = useTrackPlayer();
+    const route = useRoute<TrackPlayerScreenRouteProp>();
+    const { track } = route.params;
 
     if (!trackPlayerContext) {
         return <Text>No track player context</Text>;
@@ -37,11 +40,11 @@ const TrackPlayerScreen = () => {
         previous, 
         seek, 
         currentPosition, 
-        trackDuration 
+        trackDuration,
+        isMinimized,
+        toggleMinimize,
     } = trackPlayerContext;
 
-    const route = useRoute<TrackPlayerScreenRouteProp>();
-    const { track } = route.params;
     const [seeking, setSeeking] = useState(false);
     const [sliderValue, setSliderValue] = useState(0);
 
@@ -128,10 +131,6 @@ const TrackPlayerScreen = () => {
                     <Icon name="play-skip-forward" size={40} color="#fff" />
                 </TouchableOpacity>
             </View>
-
-            <TouchableOpacity style={styles.minimizeButton}>
-                <Icon name="chevron-down-outline" size={30} color="#fff" />
-            </TouchableOpacity>
         </View>
     );
 };
