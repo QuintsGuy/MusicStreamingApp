@@ -4,6 +4,7 @@ import { getAlbumTracks, getArtistTracks, getPlaylistTracks, getShowEpisodes } f
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTrackPlayer } from '../../context/TrackPlayerContext';
 
+// Define the types for the navigation parameters
 export type RootStackParamList = {
     Main: undefined;
     PlaylistDetails: { 
